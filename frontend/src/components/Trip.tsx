@@ -1,14 +1,14 @@
-import { format } from 'date-fns';
+import { useState } from 'react';
 import { Trip } from '../types';
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 type Props = {
   trip: Trip;
@@ -27,8 +27,8 @@ function TripCard({
   onEditTrip,
   index,
 }: Props) {
-  const [newNote, setNewNote] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [newNote, setNewNote] = useState('');
   const [editedCountry, setEditedCountry] = useState(trip.country);
   const [editedStartDate, setEditedStartDate] = useState<Date | null>(
     new Date(trip.startDate),
@@ -37,41 +37,14 @@ function TripCard({
     new Date(trip.endDate),
   );
 
-  // Debugging effect to check state values
-  useEffect(() => {
-    console.log('Edited Country:', editedCountry);
-    console.log('Edited Start Date:', editedStartDate);
-    console.log('Edited End Date:', editedEndDate);
-  }, [editedCountry, editedStartDate, editedEndDate]);
-
-  const handleAddNote = (tripId: string, note: string) => {
-    if (note.trim() !== '') {
-      onAddNote(tripId, note.trim());
-      setNewNote('');
-    }
-  };
-
-  // Handle edit trip logic, including validation checks
   const handleEditTrip = () => {
-    if (!editedCountry) {
-      console.error('Country is required');
-      return;
-    }
-    if (!editedStartDate || !editedEndDate) {
-      console.error('Start and End dates are required');
-      return;
-    }
-    try {
-      const updatedTrip = {
+    if (editedCountry && editedStartDate && editedEndDate) {
+      onEditTrip(trip.id, {
         country: editedCountry,
         startDate: editedStartDate.toISOString(),
         endDate: editedEndDate.toISOString(),
-      };
-      console.log('Updated Trip:', updatedTrip); // Debug log to check data before saving
-      onEditTrip(trip.id, updatedTrip); // Call parent function to update trip
-      setIsEditing(false); // Close edit form
-    } catch (error) {
-      console.error('Error saving trip:', error);
+      });
+      setIsEditing(false);
     }
   };
 
@@ -132,7 +105,7 @@ function TripCard({
           className="w-full"
         />
         <Button
-          onClick={() => handleAddNote(trip.id, newNote)}
+          onClick={() => onAddNote(trip.id, newNote)}
           className="bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg"
         >
           Add Note
@@ -142,6 +115,7 @@ function TripCard({
       {/* Edit Trip Form (Show when editing) */}
       {isEditing && (
         <div className="space-y-4">
+          {/* Date Picker for Start Date */}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full">
@@ -152,12 +126,15 @@ function TripCard({
             </PopoverTrigger>
             <PopoverContent>
               <Calendar
+                mode="single"
                 selected={editedStartDate}
-                onSelect={setEditedStartDate}
+                onSelect={setEditedStartDate} // Ensure selected date updates state
+                initialFocus
               />
             </PopoverContent>
           </Popover>
 
+          {/* Date Picker for End Date */}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full">
@@ -165,10 +142,16 @@ function TripCard({
               </Button>
             </PopoverTrigger>
             <PopoverContent>
-              <Calendar selected={editedEndDate} onSelect={setEditedEndDate} />
+              <Calendar
+                mode="single"
+                selected={editedEndDate}
+                onSelect={setEditedEndDate} // Ensure selected date updates state
+                initialFocus
+              />
             </PopoverContent>
           </Popover>
 
+          {/* Save Button */}
           <Button
             onClick={handleEditTrip}
             className="bg-green-500 text-white w-full"
