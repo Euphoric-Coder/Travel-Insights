@@ -1,4 +1,3 @@
-import './App.css';
 import AddTrip from './components/AddTripForm';
 import TripList from './components/TripList';
 import { useCollection, useQuery } from '@squidcloud/react';
@@ -37,16 +36,30 @@ function App() {
     });
   };
 
+  const onEditTrip = (tripId: string, updatedTrip: Partial<Trip>) => {
+    // Logic to update the trip goes here
+    const trip = findTrip(tripId); // Find the trip to update
+    if (trip) {
+      trip.update(updatedTrip); // Update the trip details
+    }
+  };
+
   return (
-    <div className="card">
-      <AskAI />
-      <AddTrip />
-      <TripList
-        trips={trips.data.map((trip) => trip.data)}
-        onDelete={onDelete}
-        onAddNote={onAddNote}
-        onDeleteNote={onDeleteNote}
-      />
+    <div className="flex flex-col items-center p-6 min-h-screen bg-gray-50">
+      <h1 className="text-4xl font-bold mb-10 text-center">
+        Travel Planner & AI Assistant
+      </h1>
+      <div className="w-full max-w-5xl space-y-8">
+        <AskAI />
+        <AddTrip />
+        <TripList
+          trips={trips.data.map((trip) => trip.data)}
+          onDelete={onDelete}
+          onAddNote={onAddNote}
+          onDeleteNote={onDeleteNote}
+          onEditTrip={onEditTrip}
+        />
+      </div>
     </div>
   );
 }
