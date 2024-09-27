@@ -1,7 +1,7 @@
 import AddTrip from './components/AddTripForm';
 import TripList from './components/TripList';
 import { useCollection, useQuery } from '@squidcloud/react';
-import { Trip } from './types';
+import { Trip, PlannerItem } from './types'; // Make sure PlannerItem is imported
 import AskAI from './components/AskAI';
 
 function App() {
@@ -37,11 +37,31 @@ function App() {
   };
 
   const onEditTrip = (tripId: string, updatedTrip: Partial<Trip>) => {
-    // Logic to update the trip goes here
-    const trip = findTrip(tripId); // Find the trip to update
+    const trip = findTrip(tripId);
     if (trip) {
-      trip.update(updatedTrip); // Update the trip details
+      trip.update(updatedTrip);
     }
+  };
+
+  // Adding a planner item
+  const onAddPlannerItem = (tripId: string, plannerItem: PlannerItem) => {
+    const trip = findTrip(tripId);
+    if (!trip) return;
+    const tripPlanner = trip.data.tripPlanner || [];
+    tripPlanner.push(plannerItem);
+    trip.update({
+      tripPlanner: tripPlanner,
+    });
+  };
+
+  // Deleting a planner item
+  const onDeletePlannerItem = (tripId: string, plannerIndex: number) => {
+    const trip = findTrip(tripId);
+    if (!trip) return;
+    const tripPlanner = trip.data.tripPlanner || [];
+    trip.update({
+      tripPlanner: tripPlanner.filter((_, index) => index !== plannerIndex),
+    });
   };
 
   return (
@@ -58,6 +78,8 @@ function App() {
           onAddNote={onAddNote}
           onDeleteNote={onDeleteNote}
           onEditTrip={onEditTrip}
+          onAddPlannerItem={onAddPlannerItem} // Pass add planner item to TripList
+          onDeletePlannerItem={onDeletePlannerItem} // Pass delete planner item to TripList
         />
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trip } from '../types';
+import { Trip, PlannerItem } from '../types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
@@ -15,6 +15,8 @@ type Props = {
   onDelete: (id: string) => void;
   onAddNote: (tripId: string, note: string) => void;
   onDeleteNote: (tripId: string, noteIndex: number) => void;
+  onAddPlannerItem: (tripId: string, plannerItem: PlannerItem) => void;
+  onDeletePlannerItem: (tripId: string, plannerIndex: number) => void;
   onEditTrip: (tripId: string, updatedTrip: Partial<Trip>) => void;
   index: number;
 };
@@ -24,6 +26,8 @@ function TripCard({
   onDelete,
   onAddNote,
   onDeleteNote,
+  onAddPlannerItem,
+  onDeletePlannerItem,
   onEditTrip,
   index,
 }: Props) {
@@ -41,27 +45,27 @@ function TripCard({
   const [editedEndDate, setEditedEndDate] = useState<Date | null>(
     new Date(trip.endDate),
   );
-  const [tripPlanner, setTripPlanner] = useState(trip.tripPlanner || []);
 
-  const handleAddPlannerItem = () => {
-    if (
-      newPlannerItem.title.trim() !== '' &&
-      newPlannerItem.description.trim() !== ''
-    ) {
-      setTripPlanner((prev) => [...prev, newPlannerItem]);
-      setNewPlannerItem({ title: '', description: '', date: null });
-    }
-  };
-
+  // Function to handle editing trip details
   const handleEditTrip = () => {
     if (editedCountry && editedStartDate && editedEndDate) {
       onEditTrip(trip.id, {
         country: editedCountry,
         startDate: editedStartDate.toISOString(),
         endDate: editedEndDate.toISOString(),
-        tripPlanner,
       });
       setIsEditing(false);
+    }
+  };
+
+  // Function to handle adding a new planner item
+  const handleAddPlannerItem = () => {
+    if (
+      newPlannerItem.title.trim() !== '' &&
+      newPlannerItem.description.trim() !== ''
+    ) {
+      onAddPlannerItem(trip.id, newPlannerItem);
+      setNewPlannerItem({ title: '', description: '', date: null });
     }
   };
 
@@ -93,8 +97,8 @@ function TripCard({
       <div>
         <h4 className="text-xl font-semibold">Trip Planner</h4>
         <ul className="space-y-2">
-          {tripPlanner.length > 0 ? (
-            tripPlanner.map((item, index) => (
+          {trip.tripPlanner && trip.tripPlanner.length > 0 ? (
+            trip.tripPlanner.map((item, index) => (
               <li
                 key={index}
                 className="flex flex-col justify-between bg-gray-50 p-3 rounded-lg border hover:bg-gray-100 transition-all"
@@ -108,6 +112,13 @@ function TripCard({
                   )}
                 </div>
                 <p className="text-sm text-gray-700">{item.description}</p>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => onDeletePlannerItem(trip.id, index)}
+                >
+                  Delete
+                </Button>
               </li>
             ))
           ) : (

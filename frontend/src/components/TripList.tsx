@@ -1,4 +1,4 @@
-import { Trip } from '../types';
+import { Trip, PlannerItem } from '../types';
 import TripCard from './Trip';
 
 type Props = {
@@ -7,6 +7,8 @@ type Props = {
   onAddNote: (tripId: string, note: string) => void;
   onDeleteNote: (tripId: string, noteIndex: number) => void;
   onEditTrip: (tripId: string, updatedTrip: Partial<Trip>) => void;
+  onAddPlannerItem: (tripId: string, plannerItem: PlannerItem) => void;
+  onDeletePlannerItem: (tripId: string, plannerIndex: number) => void;
 };
 
 function TripList({
@@ -15,6 +17,8 @@ function TripList({
   onAddNote,
   onDeleteNote,
   onEditTrip,
+  onAddPlannerItem,
+  onDeletePlannerItem,
 }: Props) {
   return (
     <div className="space-y-4">
@@ -27,7 +31,9 @@ function TripList({
             onDelete={onDelete}
             onAddNote={onAddNote}
             onDeleteNote={onDeleteNote}
-            onEditTrip={onEditTrip} // Ensure the onEditTrip is passed down
+            onEditTrip={onEditTrip}
+            onAddPlannerItem={onAddPlannerItem} // Pass planner item add function
+            onDeletePlannerItem={onDeletePlannerItem} // Pass planner item delete function
           />
         ))}
     </div>
