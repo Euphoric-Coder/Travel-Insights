@@ -8,7 +8,26 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { format, eachDayOfInterval } from 'date-fns';
+import { ChatGroq } from '@langchain/groq';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
+
+// Initialize AI model (replace this with your actual ChatGroq model details)
+const llm = new ChatGroq({
+  model: 'mixtral-8x7b-32768',
+  apiKey: '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',
+  temperature: 0,
+  maxTokens: undefined,
+  maxRetries: 2,
+});
 
 type Props = {
   trip: Trip;
@@ -33,6 +52,8 @@ function TripCard({
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [preference, setPreference] = useState(''); // For travel preferences
+  const [dialogOpen, setDialogOpen] = useState(false); // Control dialog visibility
   const [newPlannerItem, setNewPlannerItem] = useState({
     title: '',
     description: '',
@@ -58,15 +79,45 @@ function TripCard({
     }
   };
 
-  // Function to handle adding a new planner item
-  const handleAddPlannerItem = () => {
-    if (
-      newPlannerItem.title.trim() !== '' &&
-      newPlannerItem.description.trim() !== ''
-    ) {
-      onAddPlannerItem(trip.id, newPlannerItem);
-      setNewPlannerItem({ title: '', description: '', date: null });
-    }
+  // Function to generate trip plan with AI based on preferences
+  const handleGeneratePlan = async () => {
+    const prompt = ChatPromptTemplate.fromMessages([
+      [
+        'system',
+        'You are an assistant who generates travel itineraries based on user preferences.',
+      ],
+      [
+        'human',
+        `Generate an itinerary for a trip starting on ${format(
+          new Date(trip.startDate),
+          'PPP',
+        )} and ending on ${format(
+          new Date(trip.endDate),
+          'PPP',
+        )} with the preference: ${preference}.`,
+      ],
+    ]);
+
+    const chain = prompt.pipe(llm);
+    const result = await chain.invoke({ preference });
+
+    const days = eachDayOfInterval({
+      start: new Date(trip.startDate),
+      end: new Date(trip.endDate),
+    });
+
+    // Loop through each day and create planner items
+    const generatedItems = days.map((day, idx) => ({
+      title: `Day ${idx + 1} (${format(day, 'PPP')})`,
+      description: result.text, // AI-generated itinerary in HTML format
+      date: day,
+    }));
+
+    // Add each day's planner item to the trip planner
+    generatedItems.forEach((item) => onAddPlannerItem(trip.id, item));
+
+    setPreference(''); // Clear preference input
+    setDialogOpen(false); // Close dialog after generation
   };
 
   return (
@@ -111,7 +162,10 @@ function TripCard({
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-700">{item.description}</p>
+                <p
+                  className="text-sm text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: item.description }}
+                ></p>
                 <Button
                   size="sm"
                   variant="destructive"
@@ -128,53 +182,30 @@ function TripCard({
           )}
         </ul>
 
-        {/* Add Planner Item */}
-        <div className="flex flex-col space-y-2 mt-4">
-          <Input
-            value={newPlannerItem.title}
-            onChange={(e) =>
-              setNewPlannerItem((prev) => ({ ...prev, title: e.target.value }))
-            }
-            placeholder="Add a title"
-            className="w-full"
-          />
-          <Input
-            value={newPlannerItem.description}
-            onChange={(e) =>
-              setNewPlannerItem((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
-            placeholder="Add a description"
-            className="w-full"
-          />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full">
-                {newPlannerItem.date
-                  ? format(new Date(newPlannerItem.date), 'PPP')
-                  : 'Pick a date (optional)'}
+        {/* Dialog for adding preferences and generating trip plan */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg">
+              Add Travel Plan
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Generate Trip Plan</DialogTitle>
+            </DialogHeader>
+            <Input
+              value={preference}
+              onChange={(e) => setPreference(e.target.value)}
+              placeholder="Enter preferences (e.g., free days, heavy traveling)"
+              className="mb-4"
+            />
+            <DialogFooter>
+              <Button onClick={handleGeneratePlan} className="bg-blue-500">
+                Generate
               </Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <Calendar
-                mode="single"
-                selected={newPlannerItem.date}
-                onSelect={(date) =>
-                  setNewPlannerItem((prev) => ({ ...prev, date }))
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <Button
-            onClick={handleAddPlannerItem}
-            className="bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg"
-          >
-            Add Planner Item
-          </Button>
-        </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Notes Section */}
