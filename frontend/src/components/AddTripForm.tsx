@@ -72,10 +72,15 @@ const AddTrip: React.FC = () => {
     tripsCollection.doc(tripId).insert({
       id: tripId,
       country,
-      startDate: startDate ? startDate.toISOString() : null,
+      startDate: startDate ? startDate.toISOString() : undefined,
       endDate: endDate ? endDate.toISOString() : null,
       notes: [],
     });
+
+    // Reset form after adding the trip
+    setCountry('');
+    setStartDate(undefined);
+    setEndDate(undefined);
   };
 
   return (

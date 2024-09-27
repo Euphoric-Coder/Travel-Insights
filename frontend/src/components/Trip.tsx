@@ -29,6 +29,11 @@ function TripCard({
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [newPlannerItem, setNewPlannerItem] = useState({
+    title: '',
+    description: '',
+    date: null,
+  });
   const [editedCountry, setEditedCountry] = useState(trip.country);
   const [editedStartDate, setEditedStartDate] = useState<Date | null>(
     new Date(trip.startDate),
@@ -36,6 +41,17 @@ function TripCard({
   const [editedEndDate, setEditedEndDate] = useState<Date | null>(
     new Date(trip.endDate),
   );
+  const [tripPlanner, setTripPlanner] = useState(trip.tripPlanner || []);
+
+  const handleAddPlannerItem = () => {
+    if (
+      newPlannerItem.title.trim() !== '' &&
+      newPlannerItem.description.trim() !== ''
+    ) {
+      setTripPlanner((prev) => [...prev, newPlannerItem]);
+      setNewPlannerItem({ title: '', description: '', date: null });
+    }
+  };
 
   const handleEditTrip = () => {
     if (editedCountry && editedStartDate && editedEndDate) {
@@ -43,6 +59,7 @@ function TripCard({
         country: editedCountry,
         startDate: editedStartDate.toISOString(),
         endDate: editedEndDate.toISOString(),
+        tripPlanner,
       });
       setIsEditing(false);
     }
@@ -65,12 +82,88 @@ function TripCard({
             {format(new Date(trip.endDate), 'PPP')}
           </div>
         )}
-        {/* Country Pill */}
         {!isEditing && (
           <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-gradient-to-r from-blue-400 to-purple-500 text-white shadow-md">
             {trip.country}
           </span>
         )}
+      </div>
+
+      {/* Trip Planner Section */}
+      <div>
+        <h4 className="text-xl font-semibold">Trip Planner</h4>
+        <ul className="space-y-2">
+          {tripPlanner.length > 0 ? (
+            tripPlanner.map((item, index) => (
+              <li
+                key={index}
+                className="flex flex-col justify-between bg-gray-50 p-3 rounded-lg border hover:bg-gray-100 transition-all"
+              >
+                <div className="flex justify-between">
+                  <span className="font-semibold">{item.title}</span>
+                  {item.date && (
+                    <span className="text-sm text-gray-500">
+                      {format(new Date(item.date), 'PPP')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-700">{item.description}</p>
+              </li>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">
+              No trip planner items added yet.
+            </p>
+          )}
+        </ul>
+
+        {/* Add Planner Item */}
+        <div className="flex flex-col space-y-2 mt-4">
+          <Input
+            value={newPlannerItem.title}
+            onChange={(e) =>
+              setNewPlannerItem((prev) => ({ ...prev, title: e.target.value }))
+            }
+            placeholder="Add a title"
+            className="w-full"
+          />
+          <Input
+            value={newPlannerItem.description}
+            onChange={(e) =>
+              setNewPlannerItem((prev) => ({
+                ...prev,
+                description: e.target.value,
+              }))
+            }
+            placeholder="Add a description"
+            className="w-full"
+          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full">
+                {newPlannerItem.date
+                  ? format(new Date(newPlannerItem.date), 'PPP')
+                  : 'Pick a date (optional)'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Calendar
+                mode="single"
+                selected={newPlannerItem.date}
+                onSelect={(date) =>
+                  setNewPlannerItem((prev) => ({ ...prev, date }))
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <Button
+            onClick={handleAddPlannerItem}
+            className="bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg"
+          >
+            Add Planner Item
+          </Button>
+        </div>
       </div>
 
       {/* Notes Section */}
@@ -128,7 +221,7 @@ function TripCard({
               <Calendar
                 mode="single"
                 selected={editedStartDate}
-                onSelect={setEditedStartDate} // Ensure selected date updates state
+                onSelect={setEditedStartDate}
                 initialFocus
               />
             </PopoverContent>
@@ -145,7 +238,7 @@ function TripCard({
               <Calendar
                 mode="single"
                 selected={editedEndDate}
-                onSelect={setEditedEndDate} // Ensure selected date updates state
+                onSelect={setEditedEndDate}
                 initialFocus
               />
             </PopoverContent>

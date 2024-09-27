@@ -6,9 +6,8 @@ type Props = {
   onDelete: (id: string) => void;
   onAddNote: (tripId: string, note: string) => void;
   onDeleteNote: (tripId: string, noteIndex: number) => void;
-  onEditTrip: (tripId: string, updatedTrip: Partial<Trip>) => void; // Added onEditTrip prop
+  onEditTrip: (tripId: string, updatedTrip: Partial<Trip>) => void;
 };
-
 
 function TripList({
   trips,
@@ -28,7 +27,7 @@ function TripList({
             onDelete={onDelete}
             onAddNote={onAddNote}
             onDeleteNote={onDeleteNote}
-            onEditTrip={onEditTrip} // Pass the onEditTrip function
+            onEditTrip={onEditTrip} // Ensure the onEditTrip is passed down
           />
         ))}
     </div>
