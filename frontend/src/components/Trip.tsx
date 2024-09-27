@@ -79,42 +79,43 @@ function TripCard({
     }
   };
 
-  // Function to generate trip plan with AI based on preferences
+  // Function to generate a distinct itinerary for each day
   const handleGeneratePlan = async () => {
-    const prompt = ChatPromptTemplate.fromMessages([
-      [
-        'system',
-        'You are an assistant who generates travel itineraries based on user preferences.',
-      ],
-      [
-        'human',
-        `Generate an itinerary for a trip starting on ${format(
-          new Date(trip.startDate),
-          'PPP',
-        )} and ending on ${format(
-          new Date(trip.endDate),
-          'PPP',
-        )} with the preference: ${preference}.`,
-      ],
-    ]);
-
-    const chain = prompt.pipe(llm);
-    const result = await chain.invoke({ preference });
-
     const days = eachDayOfInterval({
       start: new Date(trip.startDate),
       end: new Date(trip.endDate),
     });
 
-    // Loop through each day and create planner items
-    const generatedItems = days.map((day, idx) => ({
-      title: `Day ${idx + 1} (${format(day, 'PPP')})`,
-      description: result.text, // AI-generated itinerary in HTML format
-      date: day,
-    }));
+    // Loop through each day and generate a unique itinerary using AI
+    for (let i = 0; i < days.length; i++) {
+      const day = days[i];
 
-    // Add each day's planner item to the trip planner
-    generatedItems.forEach((item) => onAddPlannerItem(trip.id, item));
+      const prompt = ChatPromptTemplate.fromMessages([
+        [
+          'system',
+          'You are an assistant who generates travel itineraries based on user preferences.',
+        ],
+        [
+          'human',
+          `Generate a detailed itinerary for day ${i + 1} of the trip starting on ${format(
+            day,
+            'PPP',
+          )}. The preference is: ${preference}.`,
+        ],
+      ]);
+
+      const chain = prompt.pipe(llm);
+      const result = await chain.invoke({ preference });
+
+      // Add AI-generated itinerary for each day
+      const generatedItinerary = {
+        title: `Day ${i + 1} (${format(day, 'PPP')})`,
+        description: result.text, // AI-generated itinerary for this day
+        date: day,
+      };
+
+      onAddPlannerItem(trip.id, generatedItinerary);
+    }
 
     setPreference(''); // Clear preference input
     setDialogOpen(false); // Close dialog after generation
