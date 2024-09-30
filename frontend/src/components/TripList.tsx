@@ -21,7 +21,7 @@ function TripList({
   onDeletePlannerItem,
 }: Props) {
   return (
-    <div className="space-y-4">
+    <div className="flex space-x-4 overflow-x-auto p-4">
       {trips &&
         trips.map((trip, index) => (
           <TripCard
@@ -32,8 +32,8 @@ function TripList({
             onAddNote={onAddNote}
             onDeleteNote={onDeleteNote}
             onEditTrip={onEditTrip}
-            onAddPlannerItem={onAddPlannerItem} // Pass planner item add function
-            onDeletePlannerItem={onDeletePlannerItem} // Pass planner item delete function
+            onAddPlannerItem={onAddPlannerItem}
+            onDeletePlannerItem={onDeletePlannerItem}
           />
         ))}
     </div>

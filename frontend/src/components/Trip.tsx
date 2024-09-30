@@ -20,9 +20,9 @@ import { format, eachDayOfInterval } from 'date-fns';
 import { ChatGroq } from '@langchain/groq';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 
-// Initialize AI model (replace this with your actual ChatGroq model details)
+// Initialize AI model (replace with actual API details)
 const llm = new ChatGroq({
-  model: 'mixtral-8x7b-32768',
+  model: 'llama-3.1-70b-versatile',
   apiKey: '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',
   temperature: 0,
   maxTokens: undefined,
@@ -54,11 +54,6 @@ function TripCard({
   const [newNote, setNewNote] = useState('');
   const [preference, setPreference] = useState(''); // For travel preferences
   const [dialogOpen, setDialogOpen] = useState(false); // Control dialog visibility
-  const [newPlannerItem, setNewPlannerItem] = useState({
-    title: '',
-    description: '',
-    date: null,
-  });
   const [editedCountry, setEditedCountry] = useState(trip.country);
   const [editedStartDate, setEditedStartDate] = useState<Date | null>(
     new Date(trip.startDate),
@@ -122,197 +117,148 @@ function TripCard({
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6 mb-6 space-y-6 min-w-[320px] transition-all duration-300 hover:shadow-2xl">
-      {/* Trip Header */}
+    <div className="bg-white shadow-lg rounded-lg p-4 mb-4 w-full sm:w-72 transition-all duration-300 hover:shadow-lg">
+      {/* Minimal Data Display */}
       <div className="flex justify-between items-center">
-        {isEditing ? (
-          <Input
-            value={editedCountry}
-            onChange={(e) => setEditedCountry(e.target.value)}
-            placeholder="Edit Country"
-            className="w-full"
-          />
-        ) : (
-          <div className="text-lg font-semibold">
-            {format(new Date(trip.startDate), 'PPP')} -{' '}
-            {format(new Date(trip.endDate), 'PPP')}
-          </div>
-        )}
-        {!isEditing && (
-          <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-gradient-to-r from-blue-400 to-purple-500 text-white shadow-md">
-            {trip.country}
-          </span>
-        )}
+        <div className="text-lg font-semibold">{trip.country}</div>
+        <Button variant="destructive" onClick={() => onDelete(trip.id)}>
+          Delete
+        </Button>
       </div>
+      <p className="text-sm text-gray-500 mt-2">
+        {format(new Date(trip.startDate), 'PPP')} -{' '}
+        {format(new Date(trip.endDate), 'PPP')}
+      </p>
 
-      {/* Trip Planner Section */}
-      <div>
-        <h4 className="text-xl font-semibold">Trip Planner</h4>
-        <ul className="space-y-2">
-          {trip.tripPlanner && trip.tripPlanner.length > 0 ? (
-            trip.tripPlanner.map((item, index) => (
-              <li
-                key={index}
-                className="flex flex-col justify-between bg-gray-50 p-3 rounded-lg border hover:bg-gray-100 transition-all"
-              >
-                <div className="flex justify-between">
-                  <span className="font-semibold">{item.title}</span>
-                  {item.date && (
-                    <span className="text-sm text-gray-500">
-                      {format(new Date(item.date), 'PPP')}
-                    </span>
-                  )}
-                </div>
-                <p
-                  className="text-sm text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: item.description }}
-                ></p>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => onDeletePlannerItem(trip.id, index)}
-                >
-                  Delete
-                </Button>
-              </li>
-            ))
-          ) : (
-            <p className="text-gray-500 text-sm">
-              No trip planner items added yet.
+      <Button
+        className="mt-4 bg-gradient-to-r from-blue-400 to-purple-500 text-white w-full rounded-md hover:shadow-lg"
+        onClick={() => setDialogOpen(true)}
+      >
+        Show Details
+      </Button>
+
+      {/* Dialog to display full trip details */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogTrigger asChild>
+          <div></div>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Trip Details for {trip.country}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-lg">
+              <strong>Dates:</strong> {format(new Date(trip.startDate), 'PPP')}{' '}
+              - {format(new Date(trip.endDate), 'PPP')}
             </p>
-          )}
-        </ul>
 
-        {/* Dialog for adding preferences and generating trip plan */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg">
-              Add Travel Plan
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Generate Trip Plan</DialogTitle>
-            </DialogHeader>
-            <Input
-              value={preference}
-              onChange={(e) => setPreference(e.target.value)}
-              placeholder="Enter preferences (e.g., free days, heavy traveling)"
-              className="mb-4"
-            />
-            <DialogFooter>
-              <Button onClick={handleGeneratePlan} className="bg-blue-500">
-                Generate
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <div>
+              <h4 className="text-xl font-semibold">Trip Planner</h4>
+              <ul className="space-y-2">
+                {trip.tripPlanner && trip.tripPlanner.length > 0 ? (
+                  trip.tripPlanner.map((item, index) => (
+                    <li
+                      key={index}
+                      className="flex flex-col justify-between bg-gray-50 p-3 rounded-lg border hover:bg-gray-100 transition-all"
+                    >
+                      <div className="flex justify-between">
+                        <span className="font-semibold">{item.title}</span>
+                        {item.date && (
+                          <span className="text-sm text-gray-500">
+                            {format(new Date(item.date), 'PPP')}
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        className="text-sm text-gray-700"
+                        dangerouslySetInnerHTML={{ __html: item.description }}
+                      ></p>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => onDeletePlannerItem(trip.id, index)}
+                      >
+                        Delete
+                      </Button>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">
+                    No trip planner items added yet.
+                  </p>
+                )}
+              </ul>
+            </div>
 
-      {/* Notes Section */}
-      <ul className="space-y-2">
-        {trip.notes.length > 0 ? (
-          trip.notes.map((note, noteIndex) => (
-            <li
-              key={noteIndex}
-              className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border hover:bg-gray-100 transition-all"
-            >
-              <span className="text-sm text-gray-700">{note}</span>
+            <div>
+              <h4 className="text-xl font-semibold">Notes</h4>
+              <ul className="space-y-2">
+                {trip.notes.length > 0 ? (
+                  trip.notes.map((note, noteIndex) => (
+                    <li
+                      key={noteIndex}
+                      className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border hover:bg-gray-100 transition-all"
+                    >
+                      <span className="text-sm text-gray-700">{note}</span>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => onDeleteNote(trip.id, noteIndex)}
+                      >
+                        Delete
+                      </Button>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No notes added yet.</p>
+                )}
+              </ul>
+
+              {/* Add New Note */}
+              <div className="flex space-x-4 mt-4">
+                <Input
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Add a note"
+                  className="w-full"
+                />
+                <Button
+                  onClick={() => onAddNote(trip.id, newNote)}
+                  className="bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg"
+                >
+                  Add Note
+                </Button>
+              </div>
+            </div>
+
+            {/* Preference Input and Generate Button */}
+            <div>
+              <h4 className="text-xl font-semibold">Generate Trip Plan</h4>
+              <Input
+                value={preference}
+                onChange={(e) => setPreference(e.target.value)}
+                placeholder="Enter preferences (e.g., free days, heavy traveling)"
+                className="mb-4"
+              />
               <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => onDeleteNote(trip.id, noteIndex)}
+                onClick={handleGeneratePlan}
+                className="bg-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg"
               >
-                Delete
+                Generate Plan
               </Button>
-            </li>
-          ))
-        ) : (
-          <p className="text-gray-500 text-sm">No notes added yet.</p>
-        )}
-      </ul>
+            </div>
+          </div>
 
-      {/* Add New Note */}
-      <div className="flex space-x-4">
-        <Input
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a note"
-          className="w-full"
-        />
-        <Button
-          onClick={() => onAddNote(trip.id, newNote)}
-          className="bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:scale-105 transition-transform rounded-lg"
-        >
-          Add Note
-        </Button>
-      </div>
-
-      {/* Edit Trip Form (Show when editing) */}
-      {isEditing && (
-        <div className="space-y-4">
-          {/* Date Picker for Start Date */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full">
-                {editedStartDate
-                  ? format(editedStartDate, 'PPP')
-                  : 'Pick Start Date'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <Calendar
-                mode="single"
-                selected={editedStartDate}
-                onSelect={setEditedStartDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          {/* Date Picker for End Date */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full">
-                {editedEndDate ? format(editedEndDate, 'PPP') : 'Pick End Date'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <Calendar
-                mode="single"
-                selected={editedEndDate}
-                onSelect={setEditedEndDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          {/* Save Button */}
-          <Button
-            onClick={handleEditTrip}
-            className="bg-green-500 text-white w-full"
-          >
-            Save Changes
-          </Button>
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex justify-between space-x-4">
-        <Button
-          onClick={() => setIsEditing(!isEditing)}
-          className="bg-gradient-to-r from-purple-400 to-pink-500 text-white py-2 px-4 rounded-lg hover:shadow-lg hover:scale-105 transition-transform"
-        >
-          {isEditing ? 'Cancel Edit' : 'View/Edit Trip'}
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={() => onDelete(trip.id)}
-          className="bg-gradient-to-r from-red-400 to-red-600 text-white py-2 px-4 rounded-lg hover:shadow-lg hover:scale-105 transition-transform"
-        >
-          Delete Trip
-        </Button>
-      </div>
+          <DialogFooter>
+            <Button
+              onClick={() => setDialogOpen(false)}
+              className="bg-gray-500 text-white"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
