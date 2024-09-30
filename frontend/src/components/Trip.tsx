@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogTrigger,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { format, eachDayOfInterval } from 'date-fns';
 import { ChatGroq } from '@langchain/groq';
@@ -138,11 +139,12 @@ function TripCard({
       </Button>
 
       {/* Dialog to display full trip details */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger asChild>
-          <div></div>
-        </DialogTrigger>
-        <DialogContent>
+      <Dialog open={dialogOpen} onOpenChange={() => {}}>
+        <DialogContent
+          className="max-w-screen-lg w-full max-h-[85vh] overflow-y-auto p-6"
+          forceMount
+        >
+          {/* Larger dialog size */}
           <DialogHeader>
             <DialogTitle>Trip Details for {trip.country}</DialogTitle>
           </DialogHeader>
