@@ -16,6 +16,7 @@ import {
   DialogFooter,
   DialogTrigger,
   DialogClose,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { format, eachDayOfInterval } from 'date-fns';
 import { ChatGroq } from '@langchain/groq';
@@ -96,7 +97,7 @@ function TripCard({
           `Generate a detailed itinerary for day ${i + 1} of the trip starting on ${format(
             day,
             'PPP',
-          )}. The preference is: ${preference}.`,
+          )}. The preference is: ${preference}. Also return the data in a pure string format (avoid using tuncation and other similar notations)`,
         ],
       ]);
 
@@ -147,6 +148,9 @@ function TripCard({
           {/* Larger dialog size */}
           <DialogHeader>
             <DialogTitle>Trip Details for {trip.country}</DialogTitle>
+            <DialogDescription>
+              Select which users can view and edit this document
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-lg">
