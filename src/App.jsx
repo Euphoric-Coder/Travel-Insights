@@ -5,7 +5,7 @@ import Footer from './components/Footer';
 
 const App = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-red-50">
+    <div className="min-h-screen bg-gradient-to-tr from-pink-50 via-white to-white">
       <Hero />
       <Footer />
     </div>

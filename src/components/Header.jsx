@@ -9,13 +9,13 @@ const Header = () => {
     { name: "Contact", href: "/contact" },
   ];
   return (
-    <header className="flex items-center justify-between px-8 py-4 bg-gradient-to-r from-pink-50 to-red-50 shadow-md">
+    <header className="flex items-center justify-between px-8 py-4 shadow-md">
       {/* Logo Section */}
       <div className="flex items-center gap-4 hover:scale-110 hover:animate-pulse transform transition-all duration-500">
         <img src="/icon.svg" alt="Travel Insights Logo" className="w-10 h-10" />
         <a
           href="/"
-          className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-red-500 to-purple-500 hover:bg-gradient-to-l hover:from-purple-500 hover:via-red-500 hover:to-pink-500"
+          className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-red-500 to-purple-500 hover:bg-gradient-to-l hover:from-purple-500 hover:via-red-500 hover:to-pink-500"
         >
           Travel Insights
         </a>

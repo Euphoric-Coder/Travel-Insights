@@ -16,7 +16,10 @@ const Hero = () => {
             Explore Smarter
           </span>
           <br />
-          with <span className="text-red-500">Travel Insights</span>
+          with{" "}
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-purple-500 to-pink-600">
+            Travel Insights
+          </span>
         </h1>
 
         {/* Subtitle */}
